@@ -130,3 +130,36 @@ services:
         - ./channel/crypto-config/peerOrganizations/org2.example.com/peers/peer1.org2.example.com/:/etc/hyperledger/crypto/peer
     depends_on:
       - orderer.example.com
+
+  #CHANNEL_NAME=mychannel TIMEOUT=1000 docker-compose -f docker-compose.yaml up -d
+  cli:
+    container_name: cli
+    image: hyperledger/fabric-tools
+    tty: true
+    environment:
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_LOGGING_LEVEL=DEBUG
+      - CORE_PEER_ID=cli
+      - CORE_PEER_ADDRESS=peer0.org1.example.com:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash -c 'sleep 100000'
+    #command: /bin/bash -c './scripts/script.sh ${CHANNEL_NAME}; sleep $TIMEOUT'
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./src/github.com/:/opt/gopath/src/github.com/hyperledger/fabric/examples/chaincode/go
+        - ./channel/crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+        - ./channel/scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
+        - ./channel/mychannel.tx:/opt/gopath/src/github.com/hyperledger/fabric/peer/mychannel.tx
+    depends_on:
+      - orderer.example.com
+      - peer0.org1.example.com
+      - peer1.org1.example.com
+      - peer0.org2.example.com
+      - peer1.org2.example.com
